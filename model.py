@@ -786,7 +786,7 @@ class DataSource(Base):
         u"3M" : BIBLIOTHECA
     }
     THREEM = BIBLIOTHECA
-    ENKI = "Enki"
+    ENKI = u"Enki"
     
     # Some sources of open-access ebooks are better than others. This
     # list shows which sources we prefer, in ascending order of
@@ -1319,7 +1319,7 @@ class Identifier(Base):
     URI = u"URI"
     DOI = u"DOI"
     UPC = u"UPC"
-    ENKI_ID = "Enki ID"
+    ENKI_ID = u"Enki ID"
     DEPRECATED_NAMES = {
         u"3M ID" : BIBLIOTHECA_ID
     }
@@ -8672,8 +8672,8 @@ class Collection(Base):
     BIBLIOTHECA = DataSource.BIBLIOTHECA
     AXIS_360 = DataSource.AXIS_360
     ONE_CLICK = DataSource.ONECLICK
-
-    PROTOCOLS = [OPDS_IMPORT, OVERDRIVE, BIBLIOTHECA, AXIS_360, ONE_CLICK]
+    ENKI = DataSource.ENKI
+    PROTOCOLS = [OPDS_IMPORT, OVERDRIVE, BIBLIOTHECA, AXIS_360, ONE_CLICK, ENKI]
     
     # How does the provider of this collection distinguish it from
     # other collections it provides? On the other side this is usually
