@@ -10,7 +10,7 @@ import string
 import time
 import uuid
 from requests.exceptions import (
-    ConnectionError, 
+    ConnectionError,
     HTTPError,
 )
 import sys
@@ -81,7 +81,7 @@ class Script(object):
         if not hasattr(self, '_log'):
             logger_name = getattr(self, 'name', None)
             self._log = logging.getLogger(logger_name)
-        return self._log        
+        return self._log
 
     @property
     def data_directory(self):
@@ -194,13 +194,13 @@ class InputScript(Script):
         else:
             lines = []
         return lines
-    
-                    
+
+
 class IdentifierInputScript(InputScript):
     """A script that takes identifiers as command line inputs."""
 
     @classmethod
-    def parse_command_line(cls, _db=None, cmd_args=None, stdin=sys.stdin, 
+    def parse_command_line(cls, _db=None, cmd_args=None, stdin=sys.stdin,
                            *args, **kwargs):
         parser = cls.arg_parser()
         parsed = parser.parse_args(cmd_args)
@@ -237,7 +237,7 @@ class IdentifierInputScript(InputScript):
     def arg_parser(cls):
         parser = argparse.ArgumentParser()
         parser.add_argument(
-            '--identifier-type', 
+            '--identifier-type',
             help='Process identifiers of this type. If IDENTIFIER is not specified, all identifiers of this type will be processed. If IDENTIFIER is specified, this argument is required.'
         )
         parser.add_argument(
@@ -265,7 +265,7 @@ class IdentifierInputScript(InputScript):
         command line. Examples:
 
         1 2
-        
+
         a b c
         """
         identifiers = []
@@ -300,7 +300,7 @@ class PatronInputScript(InputScript):
     """A script that operates on one or more Patrons."""
 
     @classmethod
-    def parse_command_line(cls, _db=None, cmd_args=None, stdin=sys.stdin, 
+    def parse_command_line(cls, _db=None, cmd_args=None, stdin=sys.stdin,
                            *args, **kwargs):
         parser = cls.arg_parser()
         parsed = parser.parse_args(cmd_args)
@@ -387,16 +387,16 @@ class SubjectInputScript(Script):
     :return: a 2-tuple (subject type, subject filter) that can be
     passed into the SubjectSweepMonitor constructor.
     """
-    
+
     @classmethod
     def arg_parser(cls):
         parser = argparse.ArgumentParser()
         parser.add_argument(
-            '--subject-type', 
+            '--subject-type',
             help='Process subjects of this type'
         )
         parser.add_argument(
-            '--subject-filter', 
+            '--subject-filter',
             help='Process subjects whose names or identifiers match this substring'
         )
         return parser
@@ -409,13 +409,13 @@ class RunCoverageProviderScript(IdentifierInputScript):
     def arg_parser(cls):
         parser = IdentifierInputScript.arg_parser()
         parser.add_argument(
-            '--cutoff-time', 
+            '--cutoff-time',
             help='Update existing coverage records if they were originally created after this time.'
         )
         return parser
 
     @classmethod
-    def parse_command_line(cls, _db, cmd_args=None, stdin=sys.stdin, 
+    def parse_command_line(cls, _db, cmd_args=None, stdin=sys.stdin,
                            *args, **kwargs):
         parser = cls.arg_parser()
         parsed = parser.parse_args(cmd_args)
@@ -446,7 +446,7 @@ class RunCoverageProviderScript(IdentifierInputScript):
             kwargs.update(provider_arguments)
 
             provider = provider(
-                self._db, 
+                self._db,
                 cutoff_time=parsed_args.cutoff_time,
                 **kwargs
             )
@@ -456,7 +456,7 @@ class RunCoverageProviderScript(IdentifierInputScript):
 
     def extract_additional_command_line_arguments(self):
         """A hook method for subclasses.
-        
+
         Turns command-line arguments into additional keyword arguments
         to the CoverageProvider constructor.
 
@@ -464,8 +464,8 @@ class RunCoverageProviderScript(IdentifierInputScript):
         (as opposed to WorkCoverageProvider).
         """
         return {
-            "input_identifier_types" : self.identifier_types, 
-            "input_identifiers" : self.identifiers, 
+            "input_identifier_types" : self.identifier_types,
+            "input_identifiers" : self.identifiers,
         }
 
 
@@ -483,7 +483,7 @@ class BibliographicRefreshScript(RunCoverageProviderScript):
     This covers all known sources of licensed content.
     """
     def __init__(self, **metadata_replacement_args):
-        
+
         self.metadata_replacement_policy = ReplacementPolicy.from_metadata_source(
             **metadata_replacement_args
         )
@@ -506,11 +506,12 @@ class BibliographicRefreshScript(RunCoverageProviderScript):
             for provider_class in (
                     ThreeMBibliographicCoverageProvider,
                     OverdriveBibliographicCoverageProvider,
-                    Axis360BibliographicCoverageProvider
+                    Axis360BibliographicCoverageProvider,
+                    EnkiBibliographicCoverageProvider
             ):
                 try:
                     provider = provider_class(
-                        self._db, 
+                        self._db,
                         cutoff_time=args.cutoff_time
                     )
                 except CannotLoadConfiguration, e:
@@ -543,7 +544,7 @@ class BibliographicRefreshScript(RunCoverageProviderScript):
             self.log.warn("Cannot update coverage for %r" % identifier)
         if provider:
             provider = provider(
-                self._db, 
+                self._db,
                 metadata_replacement_policy=self.metadata_replacement_policy,
             )
             provider.ensure_coverage(identifier, force=True)
@@ -551,7 +552,7 @@ class BibliographicRefreshScript(RunCoverageProviderScript):
 
 class ShowLibrariesScript(Script):
     """Show information about the libraries on a server."""
-    
+
     name = "List the libraries on this server."
     @classmethod
     def arg_parser(cls):
@@ -566,7 +567,7 @@ class ShowLibrariesScript(Script):
             action='store_true'
         )
         return parser
-    
+
     def do_run(self, _db=None, cmd_args=None, output=sys.stdout):
         _db = _db or self._db
         args = self.parse_command_line(_db, cmd_args=cmd_args)
@@ -590,7 +591,7 @@ class ShowLibrariesScript(Script):
             )
             output.write("\n")
 
-        
+
 class ConfigureLibraryScript(Script):
     """Create a library or change its settings."""
     name = "Change a library's settings"
@@ -629,7 +630,7 @@ class ConfigureLibraryScript(Script):
             raise ValueError(
                 "You can't set the shared secret to a random value and a specific value at the same time."
             )
-       
+
         if not args.short_name:
             raise ValueError(
                 "You must identify the library by its short name."
@@ -660,7 +661,7 @@ class ConfigureLibraryScript(Script):
                 args.library_registry_shared_secret = "".join(
                     [random.choice('1234567890abcdef') for x in range(32)]
                 )
-            
+
         if args.name:
             library.name = args.name
         if args.short_name:
@@ -677,7 +678,7 @@ class ConfigureLibraryScript(Script):
 
 class ShowCollectionsScript(Script):
     """Show information about the collections on a server."""
-    
+
     name = "List the collections on this server."
     @classmethod
     def arg_parser(cls):
@@ -692,7 +693,7 @@ class ShowCollectionsScript(Script):
             action='store_true'
         )
         return parser
-    
+
     def do_run(self, _db=None, cmd_args=None, output=sys.stdout):
         _db = _db or self._db
         args = self.parse_command_line(_db, cmd_args=cmd_args)
@@ -720,7 +721,7 @@ class ConfigureCollectionScript(Script):
     def parse_command_line(cls, _db=None, cmd_args=None):
         parser = cls.arg_parser(_db)
         return parser.parse_known_args(cmd_args)[0]
-    
+
     @classmethod
     def arg_parser(cls, _db):
         parser = argparse.ArgumentParser()
@@ -763,7 +764,7 @@ class ConfigureCollectionScript(Script):
                 help='Associate this collection with the given library. Possible libraries: %s' % library_names,
                 action="append",
             )
-        
+
         return parser
 
     @classmethod
@@ -775,7 +776,7 @@ class ConfigureCollectionScript(Script):
         if library_names:
             return '"' + '", "'.join(library_names) + '"'
         return ""
-    
+
     def do_run(self, _db=None, cmd_args=None, output=sys.stdout):
         _db = _db or self._db
         args = self.parse_command_line(_db, cmd_args=cmd_args)
@@ -784,7 +785,7 @@ class ConfigureCollectionScript(Script):
         protocol = None
         if args.protocol:
             protocol = args.protocol
-            
+
         collection = get_one(_db, Collection, name=args.name)
         if not collection:
             if protocol:
@@ -841,37 +842,37 @@ class AddClassificationScript(IdentifierInputScript):
     def arg_parser(cls):
         parser = IdentifierInputScript.arg_parser()
         parser.add_argument(
-            '--subject-type', 
+            '--subject-type',
             help='The type of the subject to add to each identifier.',
             required=True
         )
         parser.add_argument(
-            '--subject-identifier', 
+            '--subject-identifier',
             help='The identifier of the subject to add to each identifier.'
-        )        
+        )
         parser.add_argument(
-            '--subject-name', 
+            '--subject-name',
             help='The name of the subject to add to each identifier.'
-        )        
+        )
         parser.add_argument(
-            '--data-source', 
+            '--data-source',
             help='The data source to use when classifying.',
             default=DataSource.MANUAL
-        )     
+        )
         parser.add_argument(
-            '--weight', 
+            '--weight',
             help='The weight to use when classifying.',
             type=int,
             default=1000
-        )     
+        )
         parser.add_argument(
-            '--create-subject', 
+            '--create-subject',
             help="Add the subject to the database if it doesn't already exist",
             action='store_const',
             const=True
-        )     
+        )
         return parser
-    
+
     def __init__(self, _db=None, cmd_args=None):
         _db = _db or self._db
         args = self.parse_command_line(_db, cmd_args=cmd_args)
@@ -890,13 +891,13 @@ class AddClassificationScript(IdentifierInputScript):
             _db, subject_type, subject_identifier, subject_name,
             autocreate=args.create_subject
         )
-        
+
     def run(self):
         policy = PresentationCalculationPolicy(
-            choose_edition=False, 
+            choose_edition=False,
             set_edition_metadata=False,
             classify=True,
-            choose_summary=False, 
+            choose_summary=False,
             calculate_quality=False,
             choose_cover=False,
             regenerate_opds_entries=True,
@@ -986,7 +987,7 @@ class WorkProcessingScript(IdentifierInputScript):
         self._db.commit()
 
     def process_work(self, work):
-        raise NotImplementedError()      
+        raise NotImplementedError()
 
 
 class WorkConsolidationScript(WorkProcessingScript):
@@ -1051,7 +1052,7 @@ class WorkClassificationScript(WorkPresentationScript):
         choose_summary=False,
         calculate_quality=False,
         choose_cover=False,
-        regenerate_opds_entries=False, 
+        regenerate_opds_entries=False,
         update_search_index=False,
     )
 
@@ -1069,7 +1070,7 @@ class WorkOPDSScript(WorkPresentationScript):
         choose_summary=False,
         calculate_quality=False,
         choose_cover=False,
-        regenerate_opds_entries=True, 
+        regenerate_opds_entries=True,
         update_search_index=True,
     )
 
@@ -1108,8 +1109,8 @@ class OneClickImportScript(Script):
     def arg_parser(cls):
         parser = argparse.ArgumentParser()
         parser.add_argument(
-            '--mock', 
-            help='If turned on, will use the MockOneClickAPI client.', 
+            '--mock',
+            help='If turned on, will use the MockOneClickAPI client.',
             action='store_true'
         )
         return parser
@@ -1150,7 +1151,7 @@ class OneClickImportScript(Script):
 
 
 class OneClickDeltaScript(OneClickImportScript):
-    """Import book deletions, additions, and metadata changes for a 
+    """Import book deletions, additions, and metadata changes for a
     OneClick-subscribed library catalog.
     """
 
@@ -1172,21 +1173,21 @@ class OPDSImportScript(Script):
     def arg_parser(cls):
         parser = argparse.ArgumentParser()
         parser.add_argument(
-            '--url', 
+            '--url',
             help='URL of the OPDS feed to be imported'
         )
         parser.add_argument(
-            '--data-source', 
+            '--data-source',
             help='The name of the data source providing the OPDS feed.'
         )
         parser.add_argument(
-            '--force', 
+            '--force',
             help='Import the feed from scratch, even if it seems like it was already imported.',
             dest='force', action='store_true'
         )
         return parser
 
-    def __init__(self, feed_url, opds_data_source, importer_class, 
+    def __init__(self, feed_url, opds_data_source, importer_class,
                  immediately_presentation_ready=False, cmd_args=None,
                  _db=None):
         if _db:
@@ -1201,8 +1202,8 @@ class OPDSImportScript(Script):
 
     def do_run(self):
         monitor = OPDSImportMonitor(
-            self._db, self.feed_url, self.opds_data_source, 
-            self.importer_class, 
+            self._db, self.feed_url, self.opds_data_source,
+            self.importer_class,
             immediately_presentation_ready = self.immediately_presentation_ready,
             force_reimport=self.force_reimport
         )
@@ -1214,7 +1215,7 @@ class NYTBestSellerListsScript(Script):
     def __init__(self, include_history=False):
         super(NYTBestSellerListsScript, self).__init__()
         self.include_history = include_history
-    
+
     def do_run(self):
         self.api = NYTBestSellerAPI(self._db)
         self.data_source = DataSource.lookup(self._db, DataSource.NYT)
@@ -1245,7 +1246,7 @@ class RefreshMaterializedViewsScript(Script):
     def arg_parser(cls):
         parser = argparse.ArgumentParser()
         parser.add_argument(
-            '--blocking-refresh', 
+            '--blocking-refresh',
             help="Provide this argument if you're on an older version of Postgres and can't refresh materialized views concurrently.",
             action='store_true',
         )
