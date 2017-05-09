@@ -65,6 +65,7 @@ from threem import (
     ThreeMBibliographicCoverageProvider,
 )
 
+from enki import EnkiBibliographicCoverageProvider
 from axis import Axis360BibliographicCoverageProvider
 
 class Script(object):
@@ -536,6 +537,8 @@ class BibliographicRefreshScript(RunCoverageProviderScript):
             provider = OverdriveBibliographicCoverageProvider
         elif identifier.type==Identifier.AXIS_360_ID:
             provider = Axis360BibliographicCoverageProvider
+        elif identifier.type==Identifier.ENKI_ID:
+            provider = EnkiBibliographicCoverageProvider
         else:
             self.log.warn("Cannot update coverage for %r" % identifier)
         if provider:
