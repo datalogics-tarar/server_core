@@ -148,15 +148,18 @@ class EnkiAPI(object):
         else:
             return response
 
-    def availability(self, patron_id=None, since=None, title_ids=[]):
+    def availability(self, patron_id=None, since=None, title_ids=[], strt=0, qty=2000):
+        print "requesting : "+ str(qty) + " books starting at econtentRecord" +  str(strt)
         url = self.base_url + self.availability_endpoint
         args = dict()
 	#TODO Args for API calls go here
 	args['method'] = "getAllTitles"
 	args['id'] = "secontent"
-        args['strt'] = 0
-        args['qty'] = 7000
+        args['strt'] = strt
+        args['qty'] = qty
+        print "making request to " + url
 	response = self.request(url, params=args)
+        print "response: " + str(response)
         return response
 
     @classmethod
@@ -257,9 +260,9 @@ class EnkiBibliographicCoverageProvider(BibliographicCoverageProvider):
 
     def process_batch(self, identifiers):
         identifier_strings = self.api.create_identifier_strings(identifiers)
-        response = self.api.availability(title_ids=identifier_strings)
-        seen_identifiers = set()
         batch_results = []
+        response = self.api.availability(strt, qty, title_ids=identifier_strings)
+        seen_identifiers = set()
         for metadata, availability in self.parser.process_all(response.content):
             identifier, is_new = metadata.primary_identifier.load(self._db)
             if not identifier in identifiers:
@@ -380,7 +383,9 @@ class BibliographicParser(EnkiParser):
         contributors = []
         identifiers.append(IdentifierData(Identifier.ISBN, element["isbn"]))
         sort_name = element["author"]
-	contributors.append(ContributorData(sort_name=element["author"]))
+        if not sort_name:
+            sort_name = "Unknown"
+	contributors.append(ContributorData(sort_name=sort_name))
         primary_identifier = IdentifierData(Identifier.ENKI_ID, element["id"])
 	metadata = Metadata(
         data_source=DataSource.ENKI,
