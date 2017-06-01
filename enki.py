@@ -150,7 +150,7 @@ class EnkiAPI(object):
 
     def availability(self, patron_id=None, since=None, title_ids=[], strt=0, qty=2000):
         print "requesting : "+ str(qty) + " books starting at econtentRecord" +  str(strt)
-        url = self.base_url + self.availability_endpoint
+        url = str(self.base_url) + str(self.availability_endpoint)
         args = dict()
 	#TODO Args for API calls go here
 	args['method'] = "getAllTitles"
